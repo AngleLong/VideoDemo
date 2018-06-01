@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
@@ -37,6 +38,7 @@ public class FileActivity extends AppCompatActivity {
     private File mAudioFile;//音频保存的位置
     private Long mStartRecordTime, mEndRecordTime;//开始录制时间和结束录制时间
     private MediaRecorder mMediaRecorder;
+    private String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,6 +153,7 @@ public class FileActivity extends AppCompatActivity {
             }
         } catch (IOException | RuntimeException e) {
             e.printStackTrace();
+            Log.e(TAG, "doStart: " + e);
             return false;
         }
 
@@ -191,7 +194,7 @@ public class FileActivity extends AppCompatActivity {
                 mMainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        String des = mTvShow.getText() + "录制文件成功" + time + "秒";
+                        String des = "录音成功" + time + "秒";
                         mTvShow.setText(des);
                     }
                 });
@@ -199,9 +202,16 @@ public class FileActivity extends AppCompatActivity {
                 if (mAudioFile.exists()) {
                     mAudioFile.delete();
                 }
+                mMainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTvShow.setText("录音小于3秒没有保存文件");
+                    }
+                });
             }
         } catch (RuntimeException e) {
             e.printStackTrace();
+            Log.e(TAG, "doStop: " + e);
             return false;
         }
         return true;
@@ -215,17 +225,6 @@ public class FileActivity extends AppCompatActivity {
             mMediaRecorder.release();
             mMediaRecorder = null;
         }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        /*
-        * 我的想法是，在这里直接停止响应的音频录制，
-        * 因为在你按住HOME键的时候会走这个方法，直接停止就可以了
-        * 走停止的方法，其实你也是可以监听HOME键的点击事件的，其他的随你吧！
-        * 我是在这里处理的，嘻嘻*/
-        stopRecord();
     }
 
     @Override
